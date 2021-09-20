@@ -35,7 +35,23 @@ namespace SecureChatServer.Controllers
                     return new User();
                 }
                 User ans = user.Single();
-                string ret = JsonSerializer.Serialize(ans);
+                return ans;
+            }
+        }
+
+        [HttpGet]
+        [Route("GetUserFromUsername/{username}")]
+        public async Task<User> GetUserFromUsername(string username)
+        {
+            string sql = "select * from users where username=@arg_username;";
+            using (var connection = new MySqlConnection(_configuration.GetConnectionString("Default")))
+            {
+                IEnumerable<User> user = await connection.QueryAsync<User>(sql, new { arg_username = username });
+                if (user == null || user.Count() != 1)
+                {
+                    return new User();
+                }
+                User ans = user.Single();
                 return ans;
             }
         }
