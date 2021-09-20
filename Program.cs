@@ -1,4 +1,6 @@
 using Microsoft.OpenApi.Models;
+using SecureChatServer.Helpers;
+using SecureChatServer.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +12,9 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "SecureChatServer", Version = "v1" });
 });
 
-builder.Services.AddLogging(config => config.AddConsole()); 
+builder.Services.AddLogging(config => config.AddConsole());
+builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
+builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 

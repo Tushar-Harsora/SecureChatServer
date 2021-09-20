@@ -7,6 +7,7 @@ using System.Linq;
 using MySqlConnector;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using SecureChatServer.Helpers;
 
 namespace SecureChatServer.Controllers
 {
@@ -14,12 +15,24 @@ namespace SecureChatServer.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        //private readonly ILogger _logger;
         private readonly IConfiguration _configuration;
-        public UserController(IConfiguration configuration)
+        private readonly IUserService _userservice;
+        public UserController(IConfiguration configuration, IUserService userservice)
         {
             _configuration = configuration;
-            //_logger = logger;
+            _userservice = userservice;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AuthenticateByEmailAsync(AuthenticateEmailRequest request)
+        {
+            AuthenticateResponse resp = await _userservice.AuthenticateByEmailAsync(request);
+            if(resp == null)
+            {
+                return BadRequest(new { message = "Email or PrivateKey is incorrect" });
+            }
+
+            return Ok(resp);
         }
 
         [HttpGet]
