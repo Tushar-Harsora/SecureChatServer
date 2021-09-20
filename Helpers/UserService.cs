@@ -51,8 +51,10 @@ namespace SecureChatServer.Helpers
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new System.Security.Claims.ClaimsIdentity(new[] {
+                    new Claim("uid", user.uid.ToString()),
                     new Claim("email", user.email),
                     new Claim("phone_number", user.phone_number),
+                    new Claim("username", user.username),
                     new Claim("public_key", user.public_key)
                 }),
                 Expires = DateTime.UtcNow.AddMonths(1),

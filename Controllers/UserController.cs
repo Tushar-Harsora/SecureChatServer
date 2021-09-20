@@ -35,6 +35,7 @@ namespace SecureChatServer.Controllers
             return Ok(resp);
         }
 
+        [Authorize]
         [HttpGet]
         [Route("GetUserFromEmail/{email}")]
         public async Task<User> GetUserFromEmail(string email)
@@ -52,6 +53,7 @@ namespace SecureChatServer.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet]
         [Route("GetUserFromUsername/{username}")]
         public async Task<User> GetUserFromUsername(string username)
