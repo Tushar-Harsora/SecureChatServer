@@ -10,6 +10,8 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "SecureChatServer", Version = "v1" });
 });
 
+builder.Services.AddLogging(config => config.AddConsole()); 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
