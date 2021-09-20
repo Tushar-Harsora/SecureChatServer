@@ -23,19 +23,18 @@ namespace SecureChatServer.Controllers
         }
 
         [HttpGet]
-        [Route("/api/[controller]/{email}")]
+        [Route("GetUserFromEmail/{email}")]
         public async Task<User> GetUserFromEmail(string email)
         {
             string sql = "select * from users where email=@argemail;";
             using (var connection = new MySqlConnection(_configuration.GetConnectionString("Default")))
             {
                 IEnumerable<User> user = await connection.QueryAsync<User>(sql, new { argemail = email });
-                if(user == null)
+                if(user == null || user.Count() != 1)
                 {
                     return new User();
                 }
                 User ans = user.Single();
-                Console.WriteLine(ans.username + " " + ans.email);
                 string ret = JsonSerializer.Serialize(ans);
                 return ans;
             }
