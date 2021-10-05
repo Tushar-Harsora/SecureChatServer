@@ -6,12 +6,14 @@ using SecureChatServer.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Xunit;
 
 namespace SecureChatServer.Helpers
 {
     public interface IUserService
     {
-        Task<AuthenticateResponse> AuthenticateByEmailAsync(AuthenticateEmailRequest request);
+        Task<AuthenticateResponse?> AuthenticateByEmailAsync(AuthenticateEmailRequest request);
+        Task<RegisterResponse?> RegisterByEmailAsync(RegisterEmailRequest request);
         Task<User> GetByEmailAsync(string email);
         Task<User> GetByUsernameAsync(string username);
     }
@@ -24,7 +26,7 @@ namespace SecureChatServer.Helpers
             _configuration = configuration;
             _appSettings = options.Value;
         }
-        public async Task<AuthenticateResponse> AuthenticateByEmailAsync(AuthenticateEmailRequest request)
+        public async Task<AuthenticateResponse?> AuthenticateByEmailAsync(AuthenticateEmailRequest request)
         {
             // TODO: Implement authentication by Checking correct message sign
             User user = await GetByEmailAsync(request.Email);
@@ -41,6 +43,26 @@ namespace SecureChatServer.Helpers
                 phone_number = user.phone_number,
                 username = user.username
             };
+        }
+        public async Task<RegisterResponse?> RegisterByEmailAsync(RegisterEmailRequest request)
+        {
+            if(request.email == null || request.public_key == null)
+            {
+                return new RegisterResponse { status = "Email or Public Key not provided" };
+            }
+            if (request.username == null)
+                request.username = "";
+            if (request.phone_number == null)
+                request.phone_number = "";
+
+            string sql = "insert into users(email, phone_number, username, public_key) " +
+                "values (@email, @phone_number, @username, @public_key)";
+            using (var connection = new MySqlConnection(_configuration.GetConnectionString("Default")))
+            {
+                var result = await connection.ExecuteAsync(sql, request);
+                Assert.True(result == 1, "affected rows should be one");
+            }
+            return new RegisterResponse { status = "Registered Successfully" };
         }
 
         private string generateJwtToken(User user)

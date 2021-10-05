@@ -24,15 +24,30 @@ namespace SecureChatServer.Controllers
         }
 
         [HttpPost]
+        [Route("AuthenticateByEmail")]
         public async Task<IActionResult> AuthenticateByEmailAsync(AuthenticateEmailRequest request)
         {
-            AuthenticateResponse resp = await _userservice.AuthenticateByEmailAsync(request);
+            AuthenticateResponse? resp = await _userservice.AuthenticateByEmailAsync(request);
             if(resp == null)
             {
                 return BadRequest(new { message = "Email or PrivateKey is incorrect" });
             }
 
             return Ok(resp);
+        }
+
+        [HttpPost]
+        [Route("RegisterByEmail")]
+        public async Task<IActionResult> RegisterByEmailAsync(RegisterEmailRequest request)
+        {
+            RegisterResponse? res = await _userservice.RegisterByEmailAsync(request);
+
+            if(res == null)
+            {
+                return BadRequest(new RegisterResponse { status = "Email or Public Key not provided" });
+            }
+
+            return Ok(res);
         }
 
         [Authorize]
