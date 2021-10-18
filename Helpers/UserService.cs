@@ -5,6 +5,7 @@ using MySqlConnector;
 using SecureChatServer.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Xunit;
 
@@ -28,21 +29,41 @@ namespace SecureChatServer.Helpers
         }
         public async Task<AuthenticateResponse?> AuthenticateByEmailAsync(AuthenticateEmailRequest request)
         {
-            // TODO: Implement authentication by Checking correct message sign
-            User user = await GetByEmailAsync(request.Email);
-            if(user == null || user.uid == -1)
+            try
             {
-                return null;
-            }
+                User user = await GetByEmailAsync(request.Email);
+                if (user == null || user.uid == -1)
+                {
+                    return null;
+                }
 
-            string token = generateJwtToken(user);
-            return new AuthenticateResponse
+                byte[] data = Encoding.UTF8.GetBytes("SecureChatServer");
+                byte[] signature = Convert.FromBase64String(request.signedText);
+                int bytesRead = 0;
+                RSA rsa = RSA.Create();
+                rsa.ImportFromPem(user.public_key);
+                //rsa.ImportRSAPublicKey(Encoding.UTF8.GetBytes(user.public_key), out bytesRead);
+                Console.WriteLine($"{bytesRead} bytes read from public key");
+                bool res = rsa.VerifyData(data, signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                if (!res)
+                {
+                    return null;
+                }
+
+                string token = generateJwtToken(user);
+                return new AuthenticateResponse
+                {
+                    Token = token,
+                    email = user.email,
+                    phone_number = user.phone_number,
+                    username = user.username
+                };
+            }
+            catch(Exception ex)
             {
-                Token = token,
-                email = user.email,
-                phone_number = user.phone_number,
-                username = user.username
-            };
+                Console.WriteLine(ex.Message);
+            }
+            return null;
         }
         public async Task<RegisterResponse?> RegisterByEmailAsync(RegisterEmailRequest request)
         {
