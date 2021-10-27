@@ -25,6 +25,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddLogging(config => config.AddConsole());
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IChatService, ChatService>();
 
 var app = builder.Build();
 

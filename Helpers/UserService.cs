@@ -53,6 +53,7 @@ namespace SecureChatServer.Helpers
                 string token = generateJwtToken(user);
                 return new AuthenticateResponse
                 {
+                    uid = user.uid,
                     Token = token,
                     email = user.email,
                     phone_number = user.phone_number,
