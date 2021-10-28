@@ -5,6 +5,7 @@ using SecureChatServer.Models;
 
 namespace SecureChatServer.Controllers
 {
+    [Authorize]
     [Route("[controller]")]
     [ApiController]
     public class ChatController : ControllerBase
@@ -15,14 +16,50 @@ namespace SecureChatServer.Controllers
             _chatservice = chatservice;
         }
 
-        [Authorize]
         [HttpPost]
         [Route("getPreviouslyContacted")]
-        public async Task<IActionResult> getPreviouslyContacted(int your_uid)
+        public async Task<IActionResult> getPreviouslyContacted()
         {
-            List<User> resp = await _chatservice.GetPreviouslyContacted(your_uid);
+            int client_id = GetCurrentUserId();
+            List<PreviouslyContactedUser> resp = await _chatservice.GetPreviouslyContacted(client_id);
 
             return Ok(resp);
+        }
+
+        [HttpPost]
+        [Route("getConversation")]
+        public async Task<IActionResult> getConversation(int chat_relation_id)
+        {
+            int client_id = GetCurrentUserId();
+
+            bool valid_request = await _chatservice.CheckValidChatRelationId(client_id, chat_relation_id);
+            if (!valid_request)
+                return Unauthorized("Chat Relation Id is not Yours");
+            List<Message> messages = await _chatservice.GetConversation(chat_relation_id);
+
+            return Ok(messages);
+        }
+
+        [HttpPost]
+        [Route("initializeChat")]
+        public async Task<IActionResult> initializeChat(int dest_uid)
+        {
+            int client_id = GetCurrentUserId();
+            await _chatservice.InitializeChat(client_id, dest_uid);
+
+            return Ok();
+        }
+
+        private int GetCurrentUserId()
+        {
+            object? userObject = HttpContext.Items["User"];
+            if (userObject == null)
+            {
+                throw new Exception();
+            }
+            int client_id = ((User)userObject).uid;
+
+            return client_id;
         }
     }
 }
