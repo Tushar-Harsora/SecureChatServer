@@ -23,12 +23,21 @@ namespace SecureChatServer.Helpers
 
         public async Task<bool> CheckValidChatRelationId(int uid, int chat_relation_id)
         {
-            string sql = "select COUNT(*) from chat_relations where (chat_by=@current_user and chat_relation_id=@chat_relation_id) or " +
-                                                            "chat_with=@current_user and chat_relation_id=@chat_relation_id";
+            string sql = "select COUNT(*) from chat_relations where (chat_by=@current_user and id=@chat_relation_id) or " +
+                                                            "chat_with=@current_user and id=@chat_relation_id";
             using (var connection = new MySqlConnection(_configuration.GetConnectionString("Default")))
             {
-                int relations = await connection.ExecuteScalarAsync<int>(sql, new { current_user = uid, chat_relation_id = chat_relation_id });
-                return relations == 1;
+                try
+                {
+                    int relations = await connection.ExecuteScalarAsync<int>(sql, new { current_user = uid, chat_relation_id = chat_relation_id });
+
+                    return relations == 1;
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return false;
+                }
             }
         }
 
