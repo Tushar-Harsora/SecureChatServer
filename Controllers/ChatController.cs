@@ -28,14 +28,15 @@ namespace SecureChatServer.Controllers
 
         [HttpPost]
         [Route("getConversation")]
-        public async Task<IActionResult> getConversation(int chat_relation_id)
+        public async Task<IActionResult> getConversation(GetConversationRequest request)
         {
+            int chat_relation = Int32.Parse(request.chat_relation_id);
             int client_id = GetCurrentUserId();
 
-            bool valid_request = await _chatservice.CheckValidChatRelationId(client_id, chat_relation_id);
+            bool valid_request = await _chatservice.CheckValidChatRelationId(client_id, chat_relation);
             if (!valid_request)
                 return Unauthorized("Chat Relation Id is not Yours");
-            List<Message> messages = await _chatservice.GetConversation(chat_relation_id);
+            List<Message> messages = await _chatservice.GetConversation(chat_relation);
 
             return Ok(messages);
         }
