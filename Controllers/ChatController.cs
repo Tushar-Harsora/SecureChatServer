@@ -51,6 +51,23 @@ namespace SecureChatServer.Controllers
             return Ok();
         }
 
+        [HttpPost]
+        [Route("sendMessage")]
+        public async Task<IActionResult> sendMessage(Message message)
+        {
+            if (message.sender_id != GetCurrentUserId())
+                return Unauthorized("sender_id should be your id");
+
+            try
+            {
+                await _chatservice.SendMessage(message);
+                return Ok();
+            }catch(Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex);
+            }
+        }
+
         private int GetCurrentUserId()
         {
             object? userObject = HttpContext.Items["User"];

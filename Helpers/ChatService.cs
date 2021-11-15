@@ -12,6 +12,7 @@ namespace SecureChatServer.Helpers
         Task<bool> CheckValidChatRelationId(int uid, int chat_relation_id);
         Task<List<Message>> GetConversation(int chat_relation_id);
         Task InitializeChat(int src_uid, int dest_uid);
+        Task SendMessage(Message message);
     }
     public class ChatService : IChatService
     {
@@ -72,6 +73,17 @@ namespace SecureChatServer.Helpers
             using(var connection = new MySqlConnection(_configuration.GetConnectionString("Default")))
             {
                 int result = await connection.ExecuteAsync(sql, new { src_uid = src_uid, dest_uid = dest_uid });
+                Assert.True(result == 1);
+            }
+        }
+
+        public async Task SendMessage(Message message)
+        {
+            string sql = "insert into messages(sender_id, receiver_id, chat_relation_id, message, message_type_id, message_at) values" +
+                                            " (@sender_id, @receiver_id, @chat_relation_id, @message, @message_type_id, @message_at)";
+            using(var connection = new MySqlConnection(_configuration.GetConnectionString("Default")))
+            {
+                int result = await connection.ExecuteAsync(sql, message);
                 Assert.True(result == 1);
             }
         }
