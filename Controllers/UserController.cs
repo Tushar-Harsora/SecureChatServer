@@ -11,7 +11,7 @@ using SecureChatServer.Helpers;
 
 namespace SecureChatServer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -50,15 +50,14 @@ namespace SecureChatServer.Controllers
             return Ok(res);
         }
 
-        [Authorize]
-        [HttpGet]
-        [Route("GetUserFromEmail/{email}")]
-        public async Task<User> GetUserFromEmail(string email)
+        [HttpPost]
+        [Route("GetUserFromEmail")]
+        public async Task<User> GetUserFromEmail(GetUserFromEmailRequest email)
         {
             string sql = "select * from users where email=@argemail;";
             using (var connection = new MySqlConnection(_configuration.GetConnectionString("Default")))
             {
-                IEnumerable<User> user = await connection.QueryAsync<User>(sql, new { argemail = email });
+                IEnumerable<User> user = await connection.QueryAsync<User>(sql, new { argemail = email.email });
                 if(user == null || user.Count() != 1)
                 {
                     return new User();
