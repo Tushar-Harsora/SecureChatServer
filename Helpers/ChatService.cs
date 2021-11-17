@@ -80,7 +80,8 @@ namespace SecureChatServer.Helpers
         public async Task SendMessage(Message message)
         {
             string sql = "insert into messages(sender_id, receiver_id, chat_relation_id, message, message_type_id, message_at) values" +
-                                            " (@sender_id, @receiver_id, @chat_relation_id, @message, @message_type_id, @message_at)";
+                                            " (@sender_id, @receiver_id, @chat_relation_id, @message, @message_type_id, @message_at); " +
+                                            " update chat_relations set unread_counts = unread_counts + 1 where id=@chat_relation_id;";
             using(var connection = new MySqlConnection(_configuration.GetConnectionString("Default")))
             {
                 int result = await connection.ExecuteAsync(sql, message);
