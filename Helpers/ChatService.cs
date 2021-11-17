@@ -44,7 +44,7 @@ namespace SecureChatServer.Helpers
 
         public async Task<List<Message>> GetConversation(int chat_relation_id)
         {
-            string sql = "select * from messages where chat_relation_id=@chat_relation_id;";
+            string sql = "select * from messages where chat_relation_id=@chat_relation_id; update chat_relations set unread_counts = 0 where id = @chat_relation_id;";
             using(var connection = new MySqlConnection(_configuration.GetConnectionString("Default")))
             {
                 IEnumerable<Message> messages = await connection.QueryAsync<Message>(sql, new {chat_relation_id = chat_relation_id});
