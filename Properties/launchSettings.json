@@ -4,7 +4,7 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:6698",
+      "applicationUrl": "http://0.0.0.0:6698",
       "sslPort": 44308
     }
   },
@@ -16,7 +16,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "https://localhost:7026;http://localhost:5026",
+      "applicationUrl": "https://0.0.0.0:7026;http://0.0.0.0:5026",
       "dotnetRunMessages": true
     },
     "IIS Express": {
@@ -37,10 +37,10 @@
     "WSL": {
       "commandName": "WSL2",
       "launchBrowser": true,
-      "launchUrl": "https://localhost:7026/swagger",
+      "launchUrl": "https://0.0.0.0:7026/swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_URLS": "https://localhost:7026;http://localhost:5026"
+        "ASPNETCORE_URLS": "https://0.0.0.0:7026;http://localhost:5026"
       },
       "distributionName": "Debian"
     }
