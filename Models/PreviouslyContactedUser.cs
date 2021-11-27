@@ -9,6 +9,7 @@
         public int chat_relation_id { get; set; }
 
         public int unread_counts { get; set; }
+        public string public_key { get; set; }
 
         public PreviouslyContactedUser()
         {
@@ -18,8 +19,9 @@
             username = "example";
             chat_relation_id = -1;
             unread_counts = 0;
+            public_key = "";
         }
-        public PreviouslyContactedUser(int uid, string email, string phone_number, string username, int chat_relation_id, int unread_counts)
+        public PreviouslyContactedUser(int uid, string email, string phone_number, string username, int chat_relation_id, int unread_counts, string public_key)
         {
             this.uid = uid;
             this.email = email;
@@ -27,6 +29,7 @@
             this.username = username;
             this.chat_relation_id = chat_relation_id;
             this.unread_counts = unread_counts;
+            this.public_key = public_key;
         }
     }
 }

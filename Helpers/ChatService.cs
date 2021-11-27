@@ -10,9 +10,9 @@ namespace SecureChatServer.Helpers
     {
         Task<List<PreviouslyContactedUser>> GetPreviouslyContacted(int uid);
         Task<bool> CheckValidChatRelationId(int uid, int chat_relation_id);
-        Task<List<Message>> GetConversation(int chat_relation_id);
+        Task<List<Message>> GetConversation(int chat_relation_id, int current_user_id);
         Task InitializeChat(int src_uid, int dest_uid);
-        Task SendMessage(Message message);
+        Task<int> SendMessage(Message message);
     }
     public class ChatService : IChatService
     {
@@ -42,15 +42,23 @@ namespace SecureChatServer.Helpers
             }
         }
 
-        public async Task<List<Message>> GetConversation(int chat_relation_id)
+        public async Task<List<Message>> GetConversation(int chat_relation_id, int current_user_id)
         {
-            string sql = "select * from messages where chat_relation_id=@chat_relation_id; update chat_relations set unread_counts = 0 where id = @chat_relation_id;";
             using(var connection = new MySqlConnection(_configuration.GetConnectionString("Default")))
             {
-                IEnumerable<Message> messages = await connection.QueryAsync<Message>(sql, new {chat_relation_id = chat_relation_id});
-                if (messages == null)
-                    return new List<Message>();
-                return new List<Message>(messages);
+                try
+                {
+                    IEnumerable<Message> messages = await connection.QueryAsync<Message>("GetConversation", new { chat_relation = chat_relation_id, current_user_id = current_user_id },
+                                                                                            commandType: CommandType.StoredProcedure);
+                    if (messages == null)
+                        return new List<Message>();
+                    return new List<Message>(messages);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    throw;
+                }
             }
         }
 
@@ -58,12 +66,20 @@ namespace SecureChatServer.Helpers
         {
             using (var connection = new MySqlConnection(_configuration.GetConnectionString("Default")))
             {
-                IEnumerable<PreviouslyContactedUser> users = await connection.QueryAsync<PreviouslyContactedUser>("GetContacted", new { arg1 = uid }, commandType: CommandType.StoredProcedure);
-                if (users == null)
+                try
                 {
-                    return new List<PreviouslyContactedUser>();
+                    IEnumerable<PreviouslyContactedUser> users = await connection.QueryAsync<PreviouslyContactedUser>("GetContacted", new { arg1 = uid }, commandType: CommandType.StoredProcedure);
+                    if (users == null)
+                    {
+                        return new List<PreviouslyContactedUser>();
+                    }
+                    return new List<PreviouslyContactedUser>(users);
                 }
-                return new List<PreviouslyContactedUser>(users);
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    throw;
+                }
             }
         }
 
@@ -77,15 +93,21 @@ namespace SecureChatServer.Helpers
             }
         }
 
-        public async Task SendMessage(Message message)
+        public async Task<int> SendMessage(Message message)
         {
-            string sql = "insert into messages(sender_id, receiver_id, chat_relation_id, message, message_type_id, message_at) values" +
-                                            " (@sender_id, @receiver_id, @chat_relation_id, @message, @message_type_id, @message_at); " +
-                                            " update chat_relations set unread_counts = unread_counts + 1 where id=@chat_relation_id;";
-            using(var connection = new MySqlConnection(_configuration.GetConnectionString("Default")))
+            using (var connection = new MySqlConnection(_configuration.GetConnectionString("Default")))
             {
-                int result = await connection.ExecuteAsync(sql, message);
-                Assert.True(result == 1);
+                var param = new DynamicParameters();
+                param.Add("@sender_id", message.sender_id, DbType.Int32, ParameterDirection.Input);
+                param.Add("@receiver_id", message.receiver_id, DbType.Int32, ParameterDirection.Input);
+                param.Add("@chat_relation_id", message.chat_relation_id, DbType.Int32, ParameterDirection.Input);
+                param.Add("@message", message.message, DbType.String, ParameterDirection.Input);
+                param.Add("@message_type_id", message.message_type_id, DbType.Int32, ParameterDirection.Input);
+                param.Add("@message_at", message.message_at, DbType.DateTime, ParameterDirection.Input);
+                param.Add("@retval", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+                int result = await connection.ExecuteAsync("SendMessage", param, commandType: CommandType.StoredProcedure);
+                int return_val = param.Get<Int32>("@retval");
+                return return_val;
             }
         }
     }
