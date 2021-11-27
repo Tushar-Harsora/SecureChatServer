@@ -36,7 +36,11 @@ namespace SecureChatServer.Controllers
             bool valid_request = await _chatservice.CheckValidChatRelationId(client_id, chat_relation);
             if (!valid_request)
                 return Unauthorized("Chat Relation Id is not Yours");
-            List<Message> messages = await _chatservice.GetConversation(chat_relation);
+            List<Message> messages = await _chatservice.GetConversation(chat_relation, client_id);
+            messages.Sort(delegate (Message a, Message b)
+            {
+                return a.message_at.CompareTo(b.message_at);
+            });
 
             return Ok(messages);
         }
@@ -60,11 +64,11 @@ namespace SecureChatServer.Controllers
 
             try
             {
-                await _chatservice.SendMessage(message);
-                return Ok();
+                int message_id = await _chatservice.SendMessage(message);
+                return Ok(message_id);
             }catch(Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
 
